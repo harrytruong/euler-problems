@@ -458,7 +458,7 @@ var answers = [
                     // chain = chain.concat(kChains[n]); // <== !!!
                     chainLength = chain.length + kChains[n];
                     n = 1; // jump to end
-                }MISSISSIPPI
+                }
             }
             
             knowChain(chain, kChains);
