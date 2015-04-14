@@ -1083,7 +1083,93 @@ var answers = [
     
     function(){ // 32. Pandigital products
     
+        // helper to check for pandigital-ness
+        function isPandigital(n){
+            return String(n).length == 9 &&
+                _.sortBy(n.split('')).join('') == '123456789';
+        }
         
+        var pandigitalProducts = [];
+        for (var a = 1000; a > 0; a--){ // aribtrary limit
+            for (var b = 2000; b > 0; b--){ // aribtrary limit
+                var p = a * b;
+                if (isPandigital(String(a) + String(b) + String(p))){
+                    pandigitalProducts[p] = true; // ensure ignore dups
+                }
+            }
+        }
+        
+        // sum all products
+        var sum = _.reduce(_.keys(pandigitalProducts), function(m, n){ return m + +n; }, 0);
+        
+        print(sum);
+    },
+    
+    function(){ // 33. Digit cancelling fractions
+    
+        // helper to target curious fractions
+        function isCurious(num, den){
+            var q = num / den
+              , num = String(num)
+              , den = String(den);
+            // if (num == '49' && den == '98') console.log('here');
+            return _.reduce(num.split(''), function(m, n){
+                return m || 
+                    (den.indexOf(n) !== -1 && 
+                    (+num.replace(n, '')) / (+den.replace(n, '')) == q);
+            }, false);
+        }
+        
+        // find curious fractions (brute force)
+        var curiousFractions = [];
+        for (var a = 10; a < 100; a++){
+            for (var b = a+1; b < 100; b++){
+            
+                // skip "trivial"
+                if (a % 10 == 0 & b % 10 == 0) continue;
+                
+                if (isCurious(a, b)) {
+                    curiousFractions.push([a,b]);
+                }
+            }
+        }
+        
+        // find product of all curious fractions
+        var prod = _.reduce(curiousFractions, function(m, n){
+            return [m[0] * +n[0], m[1] * +n[1]];
+        }, [1, 1]);
+        
+        // reduce the fraction
+        var primes = generatePrimes(prod[0]);
+        _.each(primes, function(p){
+            while (prod[0] % p == 0 && prod[1] % p == 0){
+                prod[0] = prod[0] / p;
+                prod[1] = prod[1] / p;
+            }
+        });
+        
+        // print the denominator
+        print(prod[1]);
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
     },
     
     function(){ // 
