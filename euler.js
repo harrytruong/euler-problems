@@ -1152,16 +1152,62 @@ var answers = [
         print(prod[1]);
     },
     
-    function(){ // 
-    
+    function(){ // 34. Digit factorials
+        
+        function isCurious(n){
+            var sumDigitFactorial = _.reduce(String(n).split(''), function(m, n){
+                return m + math.factorial(parseInt(n));
+            }, 0);
+            
+            return (sumDigitFactorial == n);
+        }
+        
+        var sum = 0; // count running sum
+        
+        // start at 3 (skip 1, 2)
+        // end under 1e7 (9!+9!+9!+9! +9!+9!+9!+9! = 7 digits)
+        for (var i = 3; i < 1e7; i++){
+            if (isCurious(i)) sum += i;
+        }
+        
+        print(sum);
     },
     
-    function(){ // 
+    function(){ // 35. Circular primes
     
+        // all primes under a million
+        var primes = generatePrimes(1e6);
+        
+        // helper to check for circular prime
+        function isCircularPrime(n){
+            var strN = String(n)
+              , digits = strN.split('');
+            if (digits.length == 1) return true;
+            
+            // check rotation of digits
+            var circular = true
+              , r = digits.unshift(digits.pop()) && digits.join('');
+            while (r !== strN) {
+                if (_.indexOf(primes, parseInt(r), true) == -1) {
+                    circular = false; break;
+                }
+                r = digits.unshift(digits.pop()) && digits.join('');
+            }
+            
+            return circular;
+        }
+        
+        var count = _.reduce(primes, function(m, n){
+            if (isCircularPrime(n)) {console.log(n); m++;}
+            return m;
+        }, 0);
+        
+        print(count);
     },
     
-    function(){ // 
+    function(){ // 36. Double-base palindromes
     
+        
     },
     
     function(){ // 
