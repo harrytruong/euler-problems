@@ -1207,11 +1207,82 @@ var answers = [
     
     function(){ // 36. Double-base palindromes
     
+        function isPalindrome(n){
+            var digits = String(n)
+              , i = Math.floor(digits.length / 2);
+              
+            // single digits are palindromes
+            if (digits.length == 1) return true;
+            
+            // split in half, reverse other half, compare
+            return digits.slice(0, i) == digits.slice(-1*i).split('').reverse().join('');
+        }
         
+        var sum = 0;
+        for (var i = 1; i < 1e6; i++){
+        
+            // check base10
+            if (isPalindrome(i) && 
+            
+                // check base2
+                isPalindrome((new BigNumber(i)).toString(2))){ 
+                
+                sum += i;
+            }
+        }
+        
+        print(sum);
     },
     
-    function(){ // 
+    function(){ // 37. Truncatable primes
     
+        var limit = 1e5
+          , primes = generatePrimes(limit)
+          , truncatablePrimes = [];
+        
+        while (truncatablePrimes.length < 11){
+            truncatablePrimes = _.reduce(_.clone(primes).reverse(), function(m, p){
+                
+                // skip 2, 3, 5, 7
+                if (p < 10) return m; 
+                
+                var strPrime = String(p)
+                  , left = strPrime.split('')
+                  , right = strPrime.split('')
+                  , trunc = true;
+                
+                // step into truncating digits
+                left.shift(); right.pop();
+                while (left.length > 0){
+                
+                    // check for prime-ness
+                    if (_.indexOf(primes, +left.join(''), true) == -1 || 
+                        _.indexOf(primes, +right.join(''), true) == -1){
+                        trunc = false; 
+                        break;
+                    }
+                    
+                    // keep steppin'
+                    left.shift(); right.pop();
+                }
+                
+                // collect the interesting primes
+                if (trunc) m.push(p);
+                
+                return m;
+            }, []);
+            
+            // check if we have the 11 interesting primes
+            if (truncatablePrimes.length < 11){
+                
+                // expand our prime limit
+                limit = limit * 10;
+                primes = generatePrimes(limit);
+            }
+        }
+        
+        var sum = _.reduce(truncatablePrimes, function(m, n){ return m + n; }, 0);
+        print(sum);
     },
     
     function(){ // 
