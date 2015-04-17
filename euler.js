@@ -12,6 +12,39 @@ function generatePrimes(limit){
     return primes;
 };
 
+
+// helper to generate pythagorean triplets 
+// (tweaked from problem #9)
+function generatePyTriples(rLimit){
+    var triples = []
+      , r = 2;
+    
+    // http://bit.ly/1NjcDfw
+    function givenEvenIntegerR(r){
+        var key = r * r / 2
+          , pairs = [];
+        
+        // find factor-pairs for key
+        var i = 1, limit = Math.sqrt(key);
+        while (i < limit){
+            if (key % i == 0) pairs.push([i, key/i]);
+            i++;
+        }
+        
+        // reduce factor-pairs into py triples
+        return _.map(pairs, function(n){
+            return [r+n[0], r+n[1], r+n[0]+n[1]];
+        });
+    };
+    
+    while (r < rLimit){
+        triples = triples.concat(givenEvenIntegerR(r));
+        r += 2; 
+    }
+    
+    return triples;
+};
+
 var answers = [
 
 
@@ -1283,6 +1316,96 @@ var answers = [
         
         var sum = _.reduce(truncatablePrimes, function(m, n){ return m + n; }, 0);
         print(sum);
+    },
+    
+    function(){ // 38. Pandigital multiples
+
+        // helper to check for pandigital multiple
+        function pandigitalMultiple(n){
+            var digits = String(n);
+            
+            // get concat product for this number
+            var i = 2; // uses multiple set of (1, 2, ... n), where n > 1
+            while (digits.length < 9){
+                digits += String(n * i);
+                i++;
+            }
+            
+            // note: returns false when digits do not 
+            //       reach an exact count of 9
+            if (digits.length !== 9 || 
+            
+                // also return false for non-pandigital-ness
+                digits.split('').sort().join('') != '123456789') {
+                return false;
+            }
+            
+            // return successful pandigital multiple
+            return digits;
+        }
+        
+        // search for largest pandigital
+        // note: limit to numbers with less than 5 digits, since
+        //       (1 * [5-digits]) + (2 * [5-digits]) = [10-digits]
+        //       and pandigital-ness requires 9 digits.
+        var largest = 0;
+        for (var i = 1; i < 1e5; i++){ 
+            var n = pandigitalMultiple(i);
+            if (n && n > largest) largest = n;
+        }
+        
+        print(largest);
+    },
+    
+    function(){ // 39. Integer right triangles
+        
+        // helper to calculate p (perimeter)
+        function P(triple){
+            return triple[0] + triple[1] + triple[2];
+        };
+        
+        // if a, b, c are integers, 
+        // they must be pythagorean triples..
+        // generate triples until p > 1000
+        var limit = 100, triples = generatePyTriples(limit);
+        while (P(triples[triples.length - 1]) < 1e3){
+            limit += 10; triples = generatePyTriples(limit);
+        }
+        
+        // generate solutions for P for triples
+        var solutionsForP = _.reduce(triples, function(m, t){
+            var p = P(t);
+            m[p] = m[p] || {p: p, count: 0};
+            m[p].count++;
+            return m;
+        }, {});
+        
+        // find record holder
+        var max = _.max(solutionsForP, function(p){return p.count;});
+        print(max.p);
+    },
+    
+    function(){ // 40. Champernowne's constant
+    
+        var i = 1, digits = '0';
+        while (digits.length < 1e7){
+            digits += i; i++;
+        }
+        
+        var d = digits.split('');
+        print(d[1e0] * d[1e1] * d[1e2] * d[1e3] * d[1e4] * d[1e5] * d[1e6]);
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
     },
     
     function(){ // 
