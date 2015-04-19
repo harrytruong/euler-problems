@@ -12,7 +12,6 @@ function generatePrimes(limit){
     return primes;
 };
 
-
 // helper to generate pythagorean triplets 
 // (tweaked from problem #9)
 function generatePyTriples(rLimit){
@@ -1145,7 +1144,7 @@ var answers = [
             var q = num / den
               , num = String(num)
               , den = String(den);
-            // if (num == '49' && den == '98') console.log('here');
+            
             return _.reduce(num.split(''), function(m, n){
                 return m || 
                     (den.indexOf(n) !== -1 && 
@@ -1231,7 +1230,7 @@ var answers = [
         }
         
         var count = _.reduce(primes, function(m, n){
-            if (isCircularPrime(n)) {console.log(n); m++;}
+            if (isCircularPrime(n)) {m++;}
             return m;
         }, 0);
         
@@ -1394,6 +1393,73 @@ var answers = [
         
         var d = digits.split('');
         print(d[1e0] * d[1e1] * d[1e2] * d[1e3] * d[1e4] * d[1e5] * d[1e6]);
+    },
+    
+    function(){ // 41. Pandigital prime
+    
+        function isPandigital(n){
+            var pan = '123456789'
+              , digits = String(n);
+            return digits.split('').sort().join('') == 
+                pan.slice(0, digits.length);
+        }
+        
+        var primes = generatePrimes(1e7).reverse();
+        for (var i in primes) {
+            if (isPandigital(primes[i])) {
+                print(primes[i]);
+                break;
+            }
+        }
+    },
+    
+    function(){ // 42. Coded triangle numbers
+    
+        // helper to generate triangle numbers
+        function generateTrianges(limit){
+            var triangles = [];
+            for (var i = 1; i < limit; i++){
+                triangles.push(.5 * i * (i + 1));
+            }
+            return triangles;
+        }
+        
+        // helper to calculate word value
+        function wordValue(word){
+            return _.reduce(word.split(''), function(m, c){
+                return m + (c.charCodeAt(0) - 64);
+            }, 0);
+        }
+        
+        var triangles = generateTrianges(1e2);
+        $.get('src/p042_words.txt', function(data){
+            print(_.chain(JSON.parse('['+data+']')) 
+                .reduce(function(m, word){
+                    if (triangles.indexOf(wordValue(word)) !== -1){
+                        m.push(word);
+                    }
+                    return m;
+                }, [])
+                .value()
+                .length);
+        });
+        
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
     },
     
     function(){ // 
