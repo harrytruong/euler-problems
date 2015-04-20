@@ -1446,12 +1446,61 @@ var answers = [
         
     },
     
-    function(){ // 
+    function(){ // 43. Sub-string divisibility
     
+        // helper to check for special property
+        function isSubStrDivisible(n){
+            var digits = String(n);
+            
+            // incrementally check for satisifying substr divisibility
+            if (digits.length < 4) return true;
+            if (digits.length >=  4 && digits.slice(1,  4) %  2 !== 0) return false;
+            if (digits.length >=  5 && digits.slice(2,  5) %  3 !== 0) return false;
+            if (digits.length >=  6 && digits.slice(3,  6) %  5 !== 0) return false;
+            if (digits.length >=  7 && digits.slice(4,  7) %  7 !== 0) return false;
+            if (digits.length >=  8 && digits.slice(5,  8) % 11 !== 0) return false;
+            if (digits.length >=  9 && digits.slice(6,  9) % 13 !== 0) return false;
+            if (digits.length >= 10 && digits.slice(7, 10) % 17 !== 0) return false;
+            return true;
+        }
+        
+        // helper to generate all special numbers.
+        // incrementally validates substr divisibility
+        function specialNumbers(digits, callback, n){
+            _.each(digits, function(d){
+                var num = (n||'') + d;
+                
+                // terminate bad combinations early
+                if (! isSubStrDivisible(num)) return;
+                
+                // if we've reached the final form
+                // (while also maintaining substr divisibility)
+                // trigger callback with the number
+                if (digits.length == 1) callback(num);
+                
+                // otherwise, continue to generate the numbers
+                else combinations(_.without(digits, d), callback, num);
+            });
+        };
+        
+        // find all special numbers, keeping a running total
+        var sum = 0; 
+        specialNumbers('0123456789', function(n){ sum += +n; });
+        
+        print(sum);
     },
     
-    function(){ // 
+    function(){ // 44. Pentagon numbers
     
+        function pentagonalNumbers(limit){
+            return _.reduce(_.range(1, limit+1), function(n, i){
+                var i = new BigNumber(i);
+                n.push(i.mul((i.mul(3).minus(1)).div(2)).toFixed(0));
+                return n;
+            },[]);
+        }
+        
+        // todo
     },
     
     function(){ // 
