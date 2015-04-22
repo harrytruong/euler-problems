@@ -1555,28 +1555,85 @@ var answers = [
         print(h);
     },
     
-    function(){ // 
+    function(){ // 46. 
     
     },
     
-    function(){ // 
+    function(){ // 47. 
     
     },
     
-    function(){ // 
+    function(){ // 48. 
     
     },
     
-    function(){ // 
+    function(){ // 49. 
     
     },
     
-    function(){ // 
+    function(){ // 50. 
     
     },
     
-    function(){ // 
+    function(){ // 51. Prime digit replacements
     
+        // note: the following is incredibly messy.
+        // todo: clean me up!
+    
+        // tweaked from #24
+        function lexiPermutation(permutations, iteration, digits){
+            for (var i = 0; i < digits.length; i++){
+                var remainDigits = _.clone(digits)
+                  , d = remainDigits.splice(i, 1)
+                  , nextIteration = _.clone(iteration).concat(d);
+                if (remainDigits.length == 0){
+                    permutations[nextIteration.join('')] = true;
+                    continue; // and move on
+                }
+                lexiPermutation(permutations, nextIteration, remainDigits);
+            }
+        };
+        
+        // generates regex replacement masks
+        function masks(length, chars){
+            var perm = [], str = '';
+            for (var i = 0; i < length; i++) str += (i < chars) ? 'x' : '0';
+            lexiPermutation(perm, [], str.split(''));
+            
+            return _.map(_.keys(perm), function(m){
+                for (var i = 0; i < m.length; i++){
+                    if (m[i] == '0') m = m.slice(0,i) + (i+1) + m.slice(i+1);
+                }
+                return m.replace(/(\d)/g, '$$$1');
+            });
+        }
+        
+        var digits = 6
+          , primes = generatePrimes(+('1e'+digits))
+          , idx = primes.indexOf(_.find(primes, function(p){ return p > +('1e'+(+digits-1)); }));
+        
+        primes = primes.slice(idx);
+        var counts = {};
+        for (var chars = Math.ceil(digits/2); chars > 0; chars--){
+            var m = masks(digits, chars)
+              , mRegex = new RegExp(Array(digits+1).join('(.)'));
+              
+            for (var i in m){
+                var mask = m[i];  
+                counts = _.reduce(primes, function(m, p){
+                    var digits = String(p)
+                      , masked = digits.replace(mRegex, mask)
+                      , i = digits[mask.indexOf('x')];
+                    if (masked.replace(/x/g, i) == digits) {
+                        if (! m[masked]) m[masked] = {mask: masked, count: 1, primes: [digits]};
+                        else {m[masked].count++; m[masked].primes.push(digits);}
+                    }
+                    return m;
+                }, counts);
+            }
+        }
+        
+        print(_.max(counts, function(c){return c.count; }).primes[0]);
     },
     
     function(){ // 
