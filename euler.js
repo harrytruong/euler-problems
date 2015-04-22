@@ -1492,19 +1492,67 @@ var answers = [
     
     function(){ // 44. Pentagon numbers
     
-        function pentagonalNumbers(limit){
-            return _.reduce(_.range(1, limit+1), function(n, i){
-                var i = new BigNumber(i);
-                n.push(i.mul((i.mul(3).minus(1)).div(2)).toFixed(0));
-                return n;
-            },[]);
+        // helper to generate pentagonal number
+        function P(n){ // P(n) = n * (3 * n - 1) / 2
+            return  n * ((3 * n) - 1) / 2;
+        };
+        
+        // helper to test for pentagonal number
+        // See http://bit.ly/1HtMafc
+        function isP(n){
+            // n = (sqrt(24x + 1) + 1) / 6
+            return (Math.sqrt((24 * n) + 1) + 1) % 6 === 0;
         }
         
-        // todo
+        // helper to walk through testing for special pentagonal pair
+        // note: very brute force style
+        function pentagonalNumbers(j){
+            var D = false
+              , k = j+1
+              , Pj = P(j)
+              , Pk = P(k)
+              , Pjk = Pj + Pk;
+            
+            while (Pjk >= P(k+1)){
+            
+                // check for ideal pair
+                if (isP(Pjk) && isP(Pk - Pj)){                
+                    D = Pk - Pj;
+                    break;
+                }
+                
+                k++; 
+                Pk = P(k); 
+                Pjk = Pj + Pk;
+            }
+            
+            return D;
+        }
+        
+        var D, i = 1;
+        while (! (D = pentagonalNumbers(i))) i++; 
+        print(D);
     },
     
-    function(){ // 
-    
+    function(){ // 45. Triangular, pentagonal, and hexagonal
+
+        // helper to generate hexagonal number
+        function H(n){
+            // Hn = n(2n-1)
+            return n * ((2 * n) - 1);
+        }
+        
+        // helper to test for pentagonal number
+        // See http://bit.ly/1HtMafc
+        function isP(n){
+            // n = (sqrt(24x + 1) + 1) / 6
+            return (Math.sqrt((24 * n) + 1) + 1) % 6 === 0;
+        }
+        
+        var h, i = 144;
+        // note: all hex numbers are triangle numbers
+        while (! (isP((h = H(i))))) i++; 
+        print(h);
     },
     
     function(){ // 
