@@ -1555,12 +1555,68 @@ var answers = [
         print(h);
     },
     
-    function(){ // 46. 
-    
+    function(){ // 46. Goldbach's other conjecture
+        var primes = generatePrimes(1e5);
+        
+        // helper to determine if "can be written 
+        // as sum of prime and twice a square"
+        function sumPrimeTwiceSq(n){
+            for (var i in primes){
+                if (Math.sqrt((n - primes[i])/2) % 1 == 0) return true;
+            }
+            return false;
+        }
+        
+        for (var i = 33; i <= primes[primes.length - 1]; i += 2){
+            if (_.indexOf(primes, i, true) !== -1) continue;
+            if (sumPrimeTwiceSq(i) === false) {
+                print(i); break;
+            }
+        }
     },
     
-    function(){ // 47. 
-    
+    function(){ // 47. Distinct primes factors
+        var primes = generatePrimes(1e6)
+          , primesMap = _.reduce(primes, function(m,p){
+                m[p] = true; return m;
+            }, {});
+        
+        // helper to determine four distinct factors
+        function fourDistinctFactors(num){
+            var factors = {}, n = num;
+            for (var i in primes){
+                var prime = primes[i];
+                while (n !== 1 && n % prime === 0 && _.keys(factors).length < 5){
+                    factors[prime] = true;
+                    n = n / prime;
+                    
+                    // if (primesMap[n]){
+                        // factors[n] = true;
+                        // n = 1; 
+                    // }
+                }
+                if (n == 1) break;
+            }
+            return _.keys(factors).length == 4;
+        }
+        
+        var integers = [];
+        for (var i = 1e5+3e4; i < 1e6; i++){
+            if (integers.length == 0 && 
+                (primesMap[i] || primesMap[i+1] || primesMap[i+2] || primesMap[i+3])) {
+                i += 4;
+                integers = [];
+                continue;
+            }
+            
+            if (fourDistinctFactors(i)){
+                integers.push(i);
+                if (integers.length == 4) break;
+            }
+            else integers = [];
+        }
+        
+        print(integers[0]);
     },
     
     function(){ // 48. 
