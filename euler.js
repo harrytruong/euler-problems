@@ -1664,8 +1664,45 @@ var answers = [
         }
     },
     
-    function(){ // 50. 
+    function(){ // 50. Consecutive prime sum
     
+        var limit = 1e6
+          , primes = generatePrimes(limit).reverse()
+          , pHash = _.reduce(primes, function(m, p){ m[p] = true; return m; }, {})
+          , record = {p: 0, chain: []};
+         
+        // helper to sum array of numbers
+        function sum(a){
+            return _.reduce(a, function(m, n){ return m+n; }, 0);
+        }
+        
+        for (var i = 0; i < primes.length; i++){
+            var recordLength = record.chain.length
+              , runningSum = 0
+              , runningChain = [];
+            
+            for (var length = recordLength + 1; length + i <= primes.length; length++){
+                if (length < recordLength) continue;
+                
+                if (runningChain.length == 0){
+                    runningChain = primes.slice(i, length + i);
+                    runningSum = sum(runningChain);
+                }
+                else {
+                    var p = primes[i+length-1];
+                    runningChain.push(p);
+                    runningSum += p;
+                }
+                
+                if (runningSum > limit) break;
+                else if (pHash[runningSum]) {
+                    record.p = runningSum;
+                    record.chain = _.clone(runningChain);
+                }
+            }
+        }
+        
+        print(record.p);
     },
     
     function(){ // 51. Prime digit replacements
