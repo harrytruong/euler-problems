@@ -1619,12 +1619,49 @@ var answers = [
         print(integers[0]);
     },
     
-    function(){ // 48. 
-    
+    function(){ // 48. Self powers
+        BigNumber.config({ POW_PRECISION: 0 });
+        
+        var n = new BigNumber(1);
+        for (var i = 2; i <= 1000; i++){
+            n = n.add((new BigNumber(i)).pow(i));
+        }
+        
+        print(n.toFixed(0).slice(-10));
     },
     
     function(){ // 49. 
     
+        var primes = generatePrimes(1e4)
+          , permutations = {};
+        for (var i in primes){
+            if (primes[i] < 1e3) continue;
+            var k = String(primes[i]).split('').sort().join('');
+            if (! permutations[k]) permutations[k] = { k: k, primes: [primes[i]] };
+            else permutations[k].primes.push(primes[i]);
+        }
+        
+        var targets = _.reduce(permutations, function(m, p){
+            var primes = _.clone(p.primes);
+            while (primes.length >= 3){
+                var p = primes.shift();
+                for (var i in primes){
+                    var p2 = primes[i]
+                      , p3 = p + (2 * (p2 - p));
+                      
+                    if (_.indexOf(primes, p3) !== -1) {
+                        m.push([p, p2, p3]);
+                    }
+                }
+            }
+            
+            return m;
+        }, []);
+        
+        for (var i in targets){
+            if (targets[i][0] == 1487) continue;
+            print(targets[i].join(''));
+        }
     },
     
     function(){ // 50. 
