@@ -1766,8 +1766,33 @@ var answers = [
         print(_.max(counts, function(c){return c.count; }).primes[0]);
     },
     
-    function(){ // 
+    function(){ // 52. Permuted multiples
     
+        function permutedMultiples(n){
+            var digits = String(n)
+              , digitsX = [];
+            
+            for (var i = 2; i <= 6; i++){
+                var d = String(n * i);
+                
+                // quick compare length
+                if (d.length !== digits.length) return false;
+                digitsX.push(d);
+            }
+            
+            // compare permutations
+            digits = digits.split('').sort().join('');
+            while (digitsX.length){
+                if (digitsX.pop().split('').sort().join('') !== digits) return false;
+            }
+            
+            return true;
+        }
+        
+        var i = 1;
+        while (permutedMultiples(i) === false) i++;
+        
+        print(i);
     },
     
     function(){ // 
