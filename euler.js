@@ -1795,8 +1795,22 @@ var answers = [
         print(i);
     },
     
-    function(){ // 
+    function(){ // 53. Combinatoric selections
     
+        function nCr(n, r){
+            return math.factorial(n) / (math.factorial(r) * math.factorial(n-r));
+        }
+        
+        var count = 0;
+        for (var n = 23; n <= 100; n++){
+            var m = Math.floor(n/2);
+            for (var r = m; r > 0; r--){
+                if (nCr(n, r) < 1e6) break;
+                count += (r === m && (n & 1) === 0) ? 1 : 2;
+            }
+        }
+        
+        print(count);
     },
     
     function(){ // 
