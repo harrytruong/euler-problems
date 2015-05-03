@@ -1813,6 +1813,204 @@ var answers = [
         print(count);
     },
     
+    function(){ // 54. Poker hands
+    
+        // helper to analyze hand
+        function analyzeHand(hand){
+            var values = { 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+            
+            // breakdown by suits
+            var stats = _.reduce(hand, function(m, card){
+                var c = String(card)
+                  , v = +(values[c[0]] || c[0]);
+                
+                m[c[1]].push(v);
+                m.values.push(v);
+                m.kinds[v] = (m.kinds[v] || 0) + 1;
+                return m;
+            }, { 
+                H: [], D: [], C: [], S: [], 
+                kinds: {},
+                values: [] 
+            });
+            
+            // sort values
+            stats.values = _.sortBy(stats.values);
+            
+            return stats;
+        }
+        
+        // helper to check for hand ranking: 
+        //      (10) royal-flush, [* skipped]
+        //      (9) straight-flush, 
+        //      (8) four-kind, 
+        //      (7) full-house, 
+        //      (6) flush, 
+        //      (5) straight, 
+        //      (4) three-kind
+        //      (3) two-pair
+        //      (2) one-pair
+        //      (1) high-card
+        function checkRank(hand){
+            stats = analyzeHand(hand);
+        
+            var values = stats.values.join('')
+              , straight = [
+                    '23456',    '34567',    '45678',    '56789',
+                    '678910',   '7891011',  '89101112', '910111213',
+                    '1011121314'
+                ];
+            
+            // check for (5) straight
+            var score = _.indexOf(straight, values) !== -1 ? 5 : 0;
+            
+            // check for (10) royal-flush or (9) straight-flush or (6) flush
+            if (stats.H.length == 5 || 
+                stats.D.length == 5 || 
+                stats.C.length == 5 || 
+                stats.S.length == 5){
+                
+                // upgrade score to (10) royal-flush?
+                score = (values == '1011121314' ? 10 :                     
+                        
+                        // upgrade score to (9) straight-flush?
+                        (score == 5 ? 9 : 
+                        
+                            // upgrade score to (6) flush
+                            6));
+                            
+                // scores 9+ are confirmed/locked at this point
+                if (score >= 9) {
+                    return {
+                        score: score
+                      , high: stats.values[stats.values.length - 1]
+                      , nextHigh: 0
+                      , stats: stats
+                    };
+                }
+            }
+            
+            // check for *-kinds
+            var counts = _.groupBy(_.values(stats.kinds))
+              , ivKinds = _.invert(stats.kinds);
+            
+            // upgrade score to (8) four-kind
+            if (counts[4]) score = 8;
+            
+            // upgrade score to (7) full-house
+            else if (counts[3] && counts[2]) score = 7
+            
+            // scores 5+ are confirmed/locked at this point
+            if (score >= 5){
+            
+                return {
+                    score: score
+                  , high: score == 8 ? +(ivKinds[4]) : 
+                            (score == 7 ? +(ivKinds[3]) : 
+                                stats.values[stats.values.length - 1])
+                  , nextHigh: stats.values[stats.values.length - 2]
+                  , stats: stats
+                };
+            }
+            
+            // check for (4) three-kind or (3) two-pair or (2) one-pair
+            var countGroups = _.groupBy(counts);
+            
+            // upgrade score to (4) three-kind?
+            if (counts[3]) {
+                return {
+                    score: 4
+                  , high: +(ivKinds[3])
+                  , nextHigh: _.without(stats.values, +(ivKinds[3])).pop()
+                  , stats: stats
+                };
+            }
+            
+            // upgrade score to (3) two-pair or (2) one-pair?
+            else if (counts[2]) {
+                if (counts[2].length == 2) {
+                    return {
+                        score: 3
+                      , high: _.without(stats.values, +(ivKinds[1])).pop()
+                      , nextHigh: +(ivKinds[1])
+                      , stats: stats
+                    }
+                }
+                else {
+                    return {
+                        score: 2
+                      , high: +(ivKinds[2])
+                      , nextHigh: _.without(stats.values, +(ivKinds[2])).pop()
+                      , stats: stats
+                    }
+                }
+            }
+            
+            // upgrade score to (1) high-card
+            return {
+                score: 1
+              , high: stats.values[stats.values.length - 1]
+              , nextHigh: stats.values[stats.values.length - 2]
+              , stats: stats
+            };
+        }
+        
+        
+        // helper to determine better poker hand
+        function pokerWinner(handA, handB){
+            
+            // parse hands into suits/values
+            var A = { hand: handA, rank: checkRank(handA) }
+                B = { hand: handB, rank: checkRank(handB) };
+            
+            if (A.rank.score == B.rank.score){
+                if (A.rank.high == B.rank.high) {
+                    if (A.rank.nextHigh == B.rank.nextHigh) {
+                        throw 'Fooey. Too lazy for this.';
+                    }
+                    return A.rank.nextHigh > B.rank.nextHigh;
+                }
+                return A.rank.high > B.rank.high;
+            }
+            return A.rank.score > B.rank.score;
+        }
+    
+        // get hands and count winners
+        $.get('src/p054_poker.txt', function(data){
+            
+            var hands = data.split("\n")
+              , countWinnerA = 0;
+            
+            for (var i in hands){
+                var h = hands[i].split(" ");
+                if (h.length < 10) continue;
+                if (pokerWinner(h.slice(0, 5), h.slice(5))) countWinnerA++;
+            }
+            
+            print(countWinnerA);
+        });
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
     function(){ // 
     
     }
