@@ -1991,8 +1991,36 @@ var answers = [
         });
     },
     
-    function(){ // 
+    function(){ // 55. Lychrel numbers
     
+        // helper to step reverse/add process
+        function stepLychrel(n){
+            return n + (+(String(n).split('').reverse().join('')));
+        }
+        
+        // helpert to confirm palindrome
+        function isPalindromic(n){
+            var d = String(n)
+              , s = Math.floor(d.length / 2);
+            return d.slice(0, s).split('').reverse().join('') == 
+                   d.slice(-1 * s);
+        }
+        
+        // helper to confirm lychrel property
+        function isLychrel(n){
+            var n = stepLychrel(n)
+              , i = 1;
+            while (i <= 50){
+                if (isPalindromic(n)) return false;
+                n = stepLychrel(n);
+                i++;
+            }
+            return true;
+        }
+        
+        var count = 0;
+        for (var i = 1; i <= 1e4; i++) count += isLychrel(i);
+        print(count);
     },
     
     function(){ // 
