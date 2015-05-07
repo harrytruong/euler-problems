@@ -2023,8 +2023,20 @@ var answers = [
         print(count);
     },
     
-    function(){ // 
+    function(){ // 56. Powerful digit sum
+        BigNumber.config({ POW_PRECISION: 0 });
     
+        var maxSum = 0;
+        for (var a = 51; a <= 100; a++){
+            for (var b = 51; b <= 100; b++){
+                var sum = _.reduce((new BigNumber(a)).pow(b).toFixed(0).split(''), function(m, d){
+                    return m + (+d);
+                }, 0);
+                if (sum > maxSum) maxSum = sum;
+            }
+        }
+        
+        print(maxSum);
     },
     
     function(){ // 
