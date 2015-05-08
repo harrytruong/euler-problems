@@ -2039,8 +2039,37 @@ var answers = [
         print(maxSum);
     },
     
-    function(){ // 
-    
+    function(){ // 57. Square root convergents
+        
+        // helper to generate expansion based on number of iterations
+        function expansion(count){
+            // 1: 1 + 1/2                          =    3 /    2
+            // 2: 1 + 1/(2 + 1/2)                  =    7 /    5
+            // 3: 1 + 1/(2 + 1/(2 + 1/2))          =   17 /   12
+            // 4: 1 + 1/(2 + 1/(2 + 1/(2 + 1/2)))  =   41 /   29
+            // 5:                                  =   99 /   70
+            // 6:                                  =  239 /  169
+            // 7:                                  =  577 /  408
+            // 8:                                  = 1393 /  985
+            var frac = [new BigNumber(2), new BigNumber(1)];
+            while (count > 1){
+                frac.reverse();
+                frac[0] = frac[0].add(frac[1].mul(2));
+                count--;
+            }
+            frac.reverse();
+            frac[0] = frac[0].add(frac[1]);
+            
+            return [frac[0].toFixed(0), frac[1].toFixed(0)];
+        }
+        
+        var count = 0;
+        for (var i = 1; i <= 1e3; i++){
+            var frac = expansion(i);
+            if (frac[0].length > frac[1].length) count++;
+        }
+        
+        print(count);
     },
     
     function(){ // 
