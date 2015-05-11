@@ -44,6 +44,63 @@ function generatePyTriples(rLimit){
     return triples;
 };
 
+// helper to generate primes map (unlimited)
+// (tweaked from generatePrimes)
+function generatePrimesStretch(primes, low, high){
+    var sieve = [], newPrimes = [];
+    for (var i in primes){
+        var p = primes[i]
+          , n = Math.floor(low / p) * p;
+        if (n == 0) break;
+        for (; n <= high; n += p) sieve[n] = true;
+    }
+    
+    for (var p = (low & 1) ? low : (low - 1); p <= high; p += 2){
+        if (sieve[p] !== true) { // check against sieve
+            primes.push(p); // save and mark this prime
+            for (var ps = p+p; ps <= high; ps += p) sieve[ps] = true; 
+        }
+    }
+    
+    return primes;
+};
+function generatePrimesHigh(limit){
+    var seg = 5e6; // segment processing into 5e6 chunks
+    
+    if (limit <= seg) return generatePrimes(limit);
+    
+    console.log('Generating high primes...');
+    
+    var primes = generatePrimes(seg)
+      , parts = Math.ceil(limit / seg)
+      , startTime = +(new Date());
+    
+    var low = seg
+      , high = low + seg
+      , progress = ((1 / parts) * 100).toFixed(0)
+      , prog;
+    for (var part = 2; part <= parts; part++){
+        primes = generatePrimesStretch(primes, low, high);
+        low = high; high = (high + seg) < limit ? high + seg : limit;
+        
+        prog = ((part / parts) * 100).toFixed(0);
+        if (prog !== progress) {
+            console.log('...' + prog + '%...');
+            progress = prog;
+        }
+    }
+        
+    console.log('Finished generating primes!');
+    console.log('Total time: '+ ((((+(new Date()) - startTime) / 1000) / 60).toFixed(2)) + 'm');
+    
+    return primes;
+};
+
+function confirmProceed(){
+    return confirm('Warning, this will take a while to calculate, and may crash your browser. Proceed?');
+}
+
+
 var answers = [
 
 
@@ -2072,8 +2129,33 @@ var answers = [
         print(count);
     },
     
-    function(){ // 
-    
+    function(){ // 58. Spiral primes
+        if (! confirmProceed()) return;
+        
+        // helper to determine side length
+        function sideLength(depth){
+            return (depth * 2) - 1;
+        }
+        
+        function spiral(sideLength){
+            if (sideLength == 1) return [1];
+            var end = sideLength * sideLength;
+            return [end - ((sideLength-1) * 3), end - ((sideLength-1) * 2), 
+                    end - ((sideLength-1) * 1), end];
+        }
+        
+        var primes = generatePrimesHigh(2e8)
+          , ratio = [3, 5]
+          , depth = 2;
+        while (ratio[0] / ratio[1] >= .1){
+            depth++;
+            var diag = spiral(sideLength(depth));
+            if (diag[3] > 2e8) {console.log(ratio); break}
+            for (var i in diag) if (_.indexOf(primes, diag[i], true) !== -1) ratio[0]++;
+            ratio[1] += 4;
+        }
+        
+        print(sideLength(depth));
     },
     
     function(){ // 
