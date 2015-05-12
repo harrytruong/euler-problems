@@ -12,6 +12,99 @@ function generatePrimes(limit){
     return primes;
 };
 
+var pWorkers = [], pWorkerLimit = 4;
+function generateLargePrimes(limit, callback){
+    if (typeof (Worker) === "undefined") {
+        throw 'Error: generateLargePrimes requires web workers support.';
+    }
+    
+    // clear existing workers
+    _.invoke(pWorkers, 'terminate');
+    pWorkers = [];
+    
+    // initialize all workers
+    var segment = Math.floor(limit / pWorkerLimit);
+    for (var w = 0; w < pWorkerLimit; w++){
+        var pw = new Worker('worker-primes.js');
+        
+        // initialize worker ranges
+        var low = w == 0 ? 3 : segment * w
+          , high = w == (pWorkerLimit - 1) ? limit : segment * (w + 1);
+        pw.postMessage({init: [low, high]});
+        pw.low = low; pw.high = high;
+        
+        // setup prime finder methods
+        pw.findPrimes = function(callback){
+            this.addEventListener('message', function(e){
+                if (e.data.prime !== undefined){ callback(e.data.prime); }
+            });
+            this.postMessage({findPrimes: []});
+        };
+        
+        pw.markComposites = function(n){
+            this.postMessage({mark: n});
+        };
+        
+        // collect the worker
+        pWorkers.push(pw);
+    }
+    
+    var primes = [2]
+      , pw = pWorkers.shift();
+    (function processWorkers(){
+    
+        if (pw) pw.findPrimes(function(p){
+            primes = primes.concat(p);
+            _.invoke(pWorkers, 'markComposites', p);
+            
+            pw = pWorkers.shift();
+            processWorkers();
+        }); 
+        
+        else callback(primes);
+    })();
+    
+    return pWorkers;
+    
+    var primes = [2]
+      , asdf = 0
+      , sieve = pWorkers[asdf]
+      , p = 3; 
+    
+    (function testPrime(p){
+        sieve.cmd('test', [p], function(isPrime){
+            // console.log(p);
+            
+            if (isPrime) {
+                primes.push(p); 
+                _.invoke(pWorkers, 'cmd', 'update', [p]);
+                // console.log('here');
+            }
+            
+            // increment p (check odd-only)
+            p += 2;
+            
+            // check if we reached final limit
+            if (p >= limit){
+                callback(primes);
+                return;
+            }
+            
+            // check if we need to use next sieve
+            if (p >= sieve.high) {
+                // sieve.terminate();
+                asdf++;
+                sieve = pWorkers[asdf];
+            }
+            
+            // continue testing cycle
+            testPrime(p);
+        });
+    })(p);
+    
+    return pWorkers;
+}
+
 // helper to generate pythagorean triplets 
 // (tweaked from problem #9)
 function generatePyTriples(rLimit){
@@ -46,54 +139,67 @@ function generatePyTriples(rLimit){
 
 // helper to generate primes map (unlimited)
 // (tweaked from generatePrimes)
-function generatePrimesStretch(primes, low, high){
-    var sieve = [], newPrimes = [];
-    for (var i in primes){
-        var p = primes[i]
-          , n = Math.floor(low / p) * p;
-        if (n == 0) break;
-        for (; n <= high; n += p) sieve[n] = true;
-    }
-    
-    for (var p = (low & 1) ? low : (low - 1); p <= high; p += 2){
-        if (sieve[p] !== true) { // check against sieve
-            primes.push(p); // save and mark this prime
-            for (var ps = p+p; ps <= high; ps += p) sieve[ps] = true; 
+function generatePrimesStretch(primes, low, high, callback){
+    return setTimeout(function(){
+        var sieve = [], newPrimes = [];
+        for (var i in primes){
+            var p = primes[i]
+              , n = Math.floor(low / p) * p;
+            if (n == 0) break;
+            for (; n <= high; n += p) sieve[n] = true;
         }
-    }
-    
-    return primes;
+        
+        for (var p = (low & 1) ? low : (low - 1); p <= high; p += 2){
+            if (sieve[p] !== true) { // check against sieve
+                primes.push(p); // save and mark this prime
+                for (var ps = p+p; ps <= high; ps += p) sieve[ps] = true; 
+            }
+        }
+        
+        callback(primes);
+    }, 0);
 };
-function generatePrimesHigh(limit){
+function generatePrimesHigh(limit, callback){
     var seg = 5e6; // segment processing into 5e6 chunks
     
     if (limit <= seg) return generatePrimes(limit);
     
-    console.log('Generating high primes...');
-    
-    var primes = generatePrimes(seg)
-      , parts = Math.ceil(limit / seg)
-      , startTime = +(new Date());
-    
-    var low = seg
-      , high = low + seg
-      , progress = ((1 / parts) * 100).toFixed(0)
-      , prog;
-    for (var part = 2; part <= parts; part++){
-        primes = generatePrimesStretch(primes, low, high);
-        low = high; high = (high + seg) < limit ? high + seg : limit;
+    return setTimeout(function(){
+        console.log('Generating high primes...');
         
-        prog = ((part / parts) * 100).toFixed(0);
-        if (prog !== progress) {
-            console.log('...' + prog + '%...');
-            progress = prog;
-        }
-    }
+        var primes = generatePrimes(seg)
+          , parts = Math.ceil(limit / seg)
+          , startTime = +(new Date());
         
-    console.log('Finished generating primes!');
-    console.log('Total time: '+ ((((+(new Date()) - startTime) / 1000) / 60).toFixed(2)) + 'm');
-    
-    return primes;
+        var low = seg
+          , high = low + seg
+          , progress = ((1 / parts) * 100).toFixed(0)
+          , prog
+          , part = 2;
+        
+        var complete = function(){            
+            console.log('Finished generating primes!');
+            console.log('Total time: '+ ((((+(new Date()) - startTime) / 1000) / 60).toFixed(2)) + 'm');
+            
+            callback(primes);
+        };
+        
+        (function stepStretch(){
+            generatePrimesStretch(primes, low, high, function(primes){
+                low = high; high = (high + seg) < limit ? high + seg : limit;
+                
+                prog = ((part / parts) * 100).toFixed(0);
+                if (prog !== progress) {
+                    console.log('...' + prog + '%...');
+                    progress = prog;
+                }
+                
+                part++;
+                if (part <= parts) stepStretch();
+                else complete();
+            });
+        })();
+    }, 0);
 };
 
 function confirmProceed(){
@@ -1687,7 +1793,7 @@ var answers = [
         print(n.toFixed(0).slice(-10));
     },
     
-    function(){ // 49. 
+    function(){ // 49. Prime permutations
     
         var primes = generatePrimes(1e4)
           , permutations = {};
@@ -2144,18 +2250,95 @@ var answers = [
                     end - ((sideLength-1) * 1), end];
         }
         
-        var primes = generatePrimesHigh(2e8)
-          , ratio = [3, 5]
-          , depth = 2;
-        while (ratio[0] / ratio[1] >= .1){
-            depth++;
-            var diag = spiral(sideLength(depth));
-            if (diag[3] > 2e8) {console.log(ratio); break}
-            for (var i in diag) if (_.indexOf(primes, diag[i], true) !== -1) ratio[0]++;
-            ratio[1] += 4;
+        generatePrimesHigh(5e8, function(primes){
+            var ratio = [3, 5]
+              , depth = 2;
+            
+            while (ratio[0] / ratio[1] >= .1){
+                depth++;
+                var diag = spiral(sideLength(depth));
+                if (diag[3] > 5e8) {console.log(ratio); break}
+                for (var i in diag) if (_.indexOf(primes, diag[i], true) !== -1) ratio[0]++;
+                ratio[1] += 4;
+            }
+            
+            print(sideLength(depth));
+        })
+        
+    },
+    
+    function(){ // 59. XOR decryption
+        var alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
+        
+        // helper to decrypt message with key
+        function decrypt(message, key){
+            var keyCode = _.map(key.split(''), function(k){return k.charCodeAt(0);});
+            
+            var output = '';
+            for (var i = 0; i < message.length; i++){
+                output += String.fromCharCode(message[i] ^ keyCode[i % 3]);
+            }
+            
+            return output;
         }
         
-        print(sideLength(depth));
+        $.get('src/p059_cipher.txt', function(data){
+            var message = data.split(',');
+            
+            // cycle through keys
+            for (var i = 0; i < alpha.length; i++){
+                for (var ii = 0; ii < alpha.length; ii++){
+                    for (var iii = 0; iii < alpha.length; iii++){
+                        var key = alpha[i]+alpha[ii]+alpha[iii];
+                    
+                        // decrypt message
+                        var msg = decrypt(message, key);
+                        
+                        // check for legibility
+                        if (msg.indexOf(' ') !== -1 &&
+                            msg.indexOf('. ') !==  -1 &&
+                            msg.indexOf(' and ') !== -1) {
+                            
+                            // confirm message
+                            // console.log(key + ' :: ' + msg);
+                            
+                            // print ASCII sum
+                            print(_.reduce(msg.split(''), function(m, c){
+                                return m + c.charCodeAt(0);
+                            }, 0));
+                        }
+                    }
+                }
+            }
+        });
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
+    },
+    
+    function(){ // 
+    
     },
     
     function(){ // 
