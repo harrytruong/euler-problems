@@ -7,6 +7,7 @@ export default function Home() {
       <Head>
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
+        <script src="//cdnjs.cloudflare.com/ajax/libs/mathjs/1.5.0/math.min.js"></script>
       </Head>
 
       <main className={styles.main}>
